@@ -23,6 +23,7 @@ import { Map } from '../components/Map';
 
 import './ConsolePage.scss';
 import { isJsxOpeningLikeElement } from 'typescript';
+import FirecrawlApp from '@mendable/firecrawl-js';
 
 /**
  * Type for result from get_weather() function call
@@ -121,6 +122,8 @@ export function ConsolePage() {
     lng: -122.418137,
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
+
+  const [screenshot, setScreenshot] = useState<string>("");
 
   /**
    * Utility for formatting the timing of logs
@@ -452,6 +455,35 @@ export function ConsolePage() {
       }
     );
 
+    client.addTool(
+      {
+        name: 'scrape_data',
+        description:
+          'Scrapes data from a given URL using @Firecrawl.',
+        parameters: {
+          type: 'object',
+          properties: {
+            url: {
+              type: 'string',
+              description: 'URL to scrape data from',
+            },
+          },
+          required: ['url'],
+        },
+      },
+      async ({ url }: { [key: string]: any }) => {
+        const firecrawl = new FirecrawlApp({apiKey:"fc-"});
+        const data = await firecrawl.scrapeUrl(url, {
+          formats: ['markdown', 'screenshot'],
+        });
+        if(!data.success){
+          return "Failed to scrape data from the given URL.";
+        }
+        setScreenshot(data.screenshot ?? "");
+        return data.markdown;
+      }
+    );
+
     // handle realtime events from client + server for event logging
     client.on('realtime.event', (realtimeEvent: RealtimeEvent) => {
       setRealtimeEvents((realtimeEvents) => {
@@ -690,37 +722,9 @@ export function ConsolePage() {
         </div>
         <div className="content-right">
           <div className="content-block map">
-            <div className="content-block-title">get_weather()</div>
-            <div className="content-block-title bottom">
-              {marker?.location || 'not yet retrieved'}
-              {!!marker?.temperature && (
-                <>
-                  <br />
-                  🌡️ {marker.temperature.value} {marker.temperature.units}
-                </>
-              )}
-              {!!marker?.wind_speed && (
-                <>
-                  {' '}
-                  🍃 {marker.wind_speed.value} {marker.wind_speed.units}
-                </>
-              )}
-            </div>
-            <div className="content-block-body full">
-              {coords && (
-                <Map
-                  center={[coords.lat, coords.lng]}
-                  location={coords.location}
-                />
-              )}
-            </div>
+            {screenshot && <img src={screenshot} alt="screenshot" />}
           </div>
-          <div className="content-block kv">
-            <div className="content-block-title">set_memory()</div>
-            <div className="content-block-body content-kv">
-              {JSON.stringify(memoryKv, null, 2)}
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>
