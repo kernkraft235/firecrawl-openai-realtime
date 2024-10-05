@@ -1,7 +1,7 @@
 # OpenAI Realtime Console with Firecrawl
 
 The OpenAI Realtime Console + Firecrawl is intended as an inspector and interactive API reference
-for the OpenAI Realtime API with Firecrawl integrated. It comes packaged with two utility libraries,
+for the OpenAI Realtime API with [Firecrawl](https://firecrawl.dev) integrated for web data. It comes packaged with two utility libraries,
 [openai/openai-realtime-api-beta](https://github.com/openai/openai-realtime-api-beta)
 that acts as a **Reference Client** (for browser and Node.js) and
 [`/src/lib/wavtools`](./src/lib/wavtools) which allows for simple audio
