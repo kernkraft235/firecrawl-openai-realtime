@@ -126,7 +126,7 @@ export function ConsolePage() {
   });
   const [marker, setMarker] = useState<Coordinates | null>(null);
 
-  const [screenshot, setScreenshot] = useState<string>("");
+  const [screenshot, setScreenshot] = useState<string>('');
 
   /**
    * Utility for formatting the timing of logs
@@ -461,8 +461,7 @@ export function ConsolePage() {
     client.addTool(
       {
         name: 'scrape_data',
-        description:
-          'Scrapes data from a given URL using @Firecrawl.',
+        description: 'Goes to or scrapes data from a given URL using @Firecrawl.',
         parameters: {
           type: 'object',
           properties: {
@@ -475,15 +474,65 @@ export function ConsolePage() {
         },
       },
       async ({ url }: { [key: string]: any }) => {
-        const firecrawl = new FirecrawlApp({apiKey:"fc-"});
+        const firecrawl = new FirecrawlApp({
+          apiKey: 'fc-',
+        });
         const data = await firecrawl.scrapeUrl(url, {
           formats: ['markdown', 'screenshot'],
         });
-        if(!data.success){
-          return "Failed to scrape data from the given URL.";
+        if (!data.success) {
+          2;
+          return 'Failed to scrape data from the given URL.';
         }
-        setScreenshot(data.screenshot ?? "");
+        setScreenshot(data.screenshot ?? '');
         return data.markdown;
+      }
+    );
+
+    client.addTool(
+      {
+        name: 'map_website',
+        description:
+          'Go to website and search for pages with a specific keyword.',
+        parameters: {
+          type: 'object',
+          properties: {
+            url: {
+              type: 'string',
+              description: 'URL to map',
+            },
+            search: {
+              type: 'string',
+              description: 'Keywords to search for (2-3 max)',
+            },
+          },
+          required: ['url', 'search'],
+        },
+      },
+      async ({ url, search }: { [key: string]: any }) => {
+        const firecrawl = new FirecrawlApp({
+          apiKey: 'fc-',
+        });
+
+        const map_data = await firecrawl.mapUrl(url, { search: search });
+        if (!map_data.success) {
+          return 'Failed to map data from the given URL.';
+        }
+
+        const top_link = map_data.links?.[0];
+        if (!top_link) {
+          return 'No links found for the given search criteria.';
+        }
+
+        const scrape_data = await firecrawl.scrapeUrl(top_link, {
+          formats: ['markdown', 'screenshot'],
+        });
+        if (!scrape_data.success) {
+          return 'Failed to scrape data from the top link.';
+        }
+
+        setScreenshot(scrape_data.screenshot ?? '');
+        return scrape_data.markdown;
       }
     );
 
@@ -727,7 +776,6 @@ export function ConsolePage() {
           <div className="content-block map">
             {screenshot && <img src={screenshot} alt="screenshot" />}
           </div>
-          
         </div>
       </div>
     </div>
